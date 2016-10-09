@@ -1,0 +1,77 @@
+{\rtf1\ansi\deff0\deftab720{\fonttbl{\f0\fmodern Courier New;}}
+{\colortbl\red255\green255\blue255;\red0\green0\blue0;\red128\green128\blue128;\red128\green0\blue0;\red0\green0\blue255;\red0\green128\blue0;\red0\green0\blue128;}
+\deflang1033\pard\plain\highlight0\cf1\f0\fs20 \cf2 """ addons.xml generator """\cf1 
+\par 
+\par \b import\b0  os
+\par \b import\b0  md5
+\par 
+\par 
+\par \b class\b0  Generator\cf3\b :\cf1\b0 
+\par     \cf2 """
+\par         Generates a new addons.xml file from each addons addon.xml file
+\par         and a new addons.xml.md5 hash file. Must be run from the root of
+\par         the checked-out repo. Only handles single depth folder structure.
+\par     """\cf1 
+\par     \b def\b0  __init__\cf3\b (\cf1\b0  \cf4\b self\cf1\b0  \cf3\b ):\cf1\b0 
+\par         \cf5 # generate files\cf1 
+\par         \cf4\b self\cf3 .\cf1\b0 _generate_addons_file\cf3\b ()\cf1\b0 
+\par         \cf4\b self\cf3 .\cf1\b0 _generate_md5_file\cf3\b ()\cf1\b0 
+\par         \cf5 # notify user\cf1 
+\par         \b print\b0  \cf2 "Finished updating addons xml and md5 files"\cf1 
+\par 
+\par     \b def\b0  _generate_addons_file\cf3\b (\cf1\b0  \cf4\b self\cf1\b0  \cf3\b ):\cf1\b0 
+\par         \cf5 # addon list\cf1 
+\par         addons \cf3\b =\cf1\b0  sorted\cf3\b (\cf1\b0 os\cf3\b .\cf1\b0 listdir\cf3\b (\cf1\b0  \cf2 "."\cf1  \cf3\b ))\cf1\b0 
+\par         \cf5 # final addons text\cf1 
+\par         addons_xml \cf3\b =\cf1\b0  u\cf2 "<?xml version=\\"1.0\\" encoding=\\"UTF-8\\" standalone=\\"yes\\"?>\\n<addons>\\n"\cf1 
+\par         \cf5 # loop thru and add each addons addon.xml file\cf1 
+\par         \b for\b0  addon \b in\b0  addons\cf3\b :\cf1\b0 
+\par             \b try\cf3 :\cf1\b0 
+\par                 \cf5 # skip any file or .svn folder\cf1 
+\par                 \b if\b0  \cf3\b (\cf1\b0  \b not\b0  os\cf3\b .\cf1\b0 path\cf3\b .\cf1\b0 isdir\cf3\b (\cf1\b0  addon \cf3\b )\cf1\b0  \b or\b0  addon\cf3\b .\cf1\b0 startswith\cf3\b (\cf2\b0 '.'\cf3\b )\cf1\b0  \cf3\b ):\cf1\b0  \b continue\b0 
+\par                 \cf5 # create path\cf1 
+\par                 _path \cf3\b =\cf1\b0  os\cf3\b .\cf1\b0 path\cf3\b .\cf1\b0 join\cf3\b (\cf1\b0  addon\cf3\b ,\cf1\b0  \cf2 "addon.xml"\cf1  \cf3\b )\cf1\b0 
+\par                 \cf5 # split lines for stripping\cf1 
+\par                 xml_lines \cf3\b =\cf1\b0  \cf4\b open\cf3 (\cf1\b0  _path\cf3\b ,\cf1\b0  \cf2 "r"\cf1  \cf3\b ).\cf1\b0 read\cf3\b ().\cf1\b0 splitlines\cf3\b ()\cf1\b0 
+\par                 \cf5 # new addon\cf1 
+\par                 addon_xml \cf3\b =\cf1\b0  \cf2 ""\cf1 
+\par                 \cf5 # loop thru cleaning each line\cf1 
+\par                 \b for\b0  line \b in\b0  xml_lines\cf3\b :\cf1\b0 
+\par                     \cf5 # skip encoding format line\cf1 
+\par                     \b if\b0  \cf3\b (\cf1\b0  line\cf3\b .\cf1\b0 find\cf3\b (\cf1\b0  \cf2 "<?xml"\cf1  \cf3\b )\cf1\b0  \cf3\b >=\cf1\b0  \cf6\b 0\cf1\b0  \cf3\b ):\cf1\b0  \b continue\b0 
+\par                     \cf5 # add line\cf1 
+\par                     addon_xml \cf3\b +=\cf1\b0  \cf4\b unicode\cf3 (\cf1\b0  line\cf3\b .\cf1\b0 rstrip\cf3\b ()\cf1\b0  \cf3\b +\cf1\b0  \cf2 "\\n"\cf3\b ,\cf1\b0  \cf2 "UTF-8"\cf1  \cf3\b )\cf1\b0 
+\par                 \cf5 # we succeeded so add to our final addons.xml text\cf1 
+\par                 addons_xml \cf3\b +=\cf1\b0  addon_xml\cf3\b .\cf1\b0 rstrip\cf3\b ()\cf1\b0  \cf3\b +\cf1\b0  \cf2 "\\n\\n"\cf1 
+\par             \b except\b0  Exception\cf3\b ,\cf1\b0  e\cf3\b :\cf1\b0 
+\par                 \cf5 # missing or poorly formatted addon.xml\cf1 
+\par                 \b print\b0  \cf2 "Excluding %s for %s"\cf1  % \cf3\b (\cf1\b0  _path\cf3\b ,\cf1\b0  e\cf3\b ,\cf1\b0  \cf3\b )\cf1\b0 
+\par         \cf5 # clean and add closing tag\cf1 
+\par         addons_xml \cf3\b =\cf1\b0  addons_xml\cf3\b .\cf1\b0 strip\cf3\b ()\cf1\b0  \cf3\b +\cf1\b0  u\cf2 "\\n</addons>\\n"\cf1 
+\par         \cf5 # save file\cf1 
+\par         \cf4\b self\cf3 .\cf1\b0 _save_file\cf3\b (\cf1\b0  addons_xml\cf3\b .\cf1\b0 encode\cf3\b (\cf1\b0  \cf2 "UTF-8"\cf1  \cf3\b ),\cf1\b0  \cf4\b file\cf3 =\cf2\b0 "addons.xml"\cf1  \cf3\b )\cf1\b0 
+\par 
+\par     \b def\b0  _generate_md5_file\cf3\b (\cf1\b0  \cf4\b self\cf1\b0  \cf3\b ):\cf1\b0 
+\par         \b try\cf3 :\cf1\b0 
+\par             \cf5 # create a new md5 hash\cf1 
+\par             m \cf3\b =\cf1\b0  md5\cf3\b .\cf1\b0 new\cf3\b (\cf1\b0  \cf4\b open\cf3 (\cf1\b0  \cf2 "addons.xml"\cf1  \cf3\b ).\cf1\b0 read\cf3\b ()\cf1\b0  \cf3\b ).\cf1\b0 hexdigest\cf3\b ()\cf1\b0 
+\par             \cf5 # save file\cf1 
+\par             \cf4\b self\cf3 .\cf1\b0 _save_file\cf3\b (\cf1\b0  m\cf3\b ,\cf1\b0  \cf4\b file\cf3 =\cf2\b0 "addons.xml.md5"\cf1  \cf3\b )\cf1\b0 
+\par         \b except\b0  Exception\cf3\b ,\cf1\b0  e\cf3\b :\cf1\b0 
+\par             \cf5 # oops\cf1 
+\par             \b print\b0  \cf2 "An error occurred creating addons.xml.md5 file!\\n%s"\cf1  % \cf3\b (\cf1\b0  e\cf3\b ,\cf1\b0  \cf3\b )\cf1\b0 
+\par 
+\par     \b def\b0  _save_file\cf3\b (\cf1\b0  \cf4\b self\cf3 ,\cf1\b0  data\cf3\b ,\cf1\b0  \cf4\b file\cf1\b0  \cf3\b ):\cf1\b0 
+\par         \b try\cf3 :\cf1\b0 
+\par             \cf5 # write data to the file\cf1 
+\par             \cf4\b open\cf3 (\cf1\b0  \cf4\b file\cf3 ,\cf1\b0  \cf2 "w"\cf1  \cf3\b ).\cf1\b0 write\cf3\b (\cf1\b0  data \cf3\b )\cf1\b0 
+\par         \b except\b0  Exception\cf3\b ,\cf1\b0  e\cf3\b :\cf1\b0 
+\par             \cf5 # oops\cf1 
+\par             \b print\b0  \cf2 "An error occurred saving %s file!\\n%s"\cf1  % \cf3\b (\cf1\b0  \cf4\b file\cf3 ,\cf1\b0  e\cf3\b ,\cf1\b0  \cf3\b )\cf1\b0 
+\par 
+\par 
+\par \b if\b0  \cf3\b (\cf1\b0  __name__ \cf3\b ==\cf1\b0  \cf2 "__main__"\cf1  \cf3\b ):\cf1\b0 
+\par     \cf5 # start\cf1 
+\par     Generator\cf3\b ()\cf1\b0 
+\par 
+}
